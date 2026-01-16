@@ -1,0 +1,3 @@
+Lucene is a powerful search library for full-text indexing and retrieval.
+It analyzes text, builds an inverted index, and makes queries fast.
+This sample file is here so you can try searching for words like Lucene or index.
