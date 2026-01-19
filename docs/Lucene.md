@@ -85,3 +85,20 @@ Lucene became the **core engine** behind:
 
 > Lucene didn’t build a search engine —
 > **it built the engine that powers search everywhere.**
+
+
+## Key Features
+
+- **Indexing and Searching**
+- **Ranked Searching**: Best results are returned first
+- **Powerful Query Types**:
+  - Phrase queries
+  - Wildcard queries
+  - Proximity queries
+  - Fielded searching
+- **Sorting by Field**
+- **Multiple Indexes with Merged Results**
+- **Flexible Faceting**
+- **Highlighting**
+- **Join Support**
+- **Results Grouping**
