@@ -150,21 +150,21 @@ DirectoryReader.open(directory)
 
 ## Why Lucene Uses This Filesystem Design
 
-### 1. Speed 🚀
+### 1. Speed 
 *   Inverted index = instant lookup
 *   Immutable segments = no locking during search
 
-### 2. Safety 🧯
+### 2. Safety 
 *   Atomic commits
 *   Crash-safe (`segments_N`)
 *   Write lock protection
 
-### 3. Scalability 📈
+### 3. Scalability 
 *   Segments can be merged
 *   Millions of documents supported
 *   Works on SSD, HDD, distributed FS
 
-### 4. Near Real-Time Search 🔁
+### 4. Near Real-Time Search 
 *   New segments become searchable quickly
 *   Old segments remain untouched
 
