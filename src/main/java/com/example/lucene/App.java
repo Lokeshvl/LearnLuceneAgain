@@ -7,6 +7,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
@@ -35,19 +37,27 @@ import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 
 public class App {
+  private static final Logger logger = Logger.getLogger(App.class.getName());
+
   public static void main(String[] args) throws Exception {
+    String filePathStr;
+    String queryText;
+
     if (args.length < 2) {
-      System.out.println("Usage: mvn -q -DskipTests compile exec:java -Dexec.args=\"<path-to-text-file> <query>\"");
-      System.out.println("Example: mvn -q -DskipTests compile exec:java -Dexec.args=\"data/sample.txt lucene\"");
-      System.out.println("Example: mvn -q -DskipTests compile exec:java -Dexec.args=\"src/test/resources/gandhi.txt satyagraha\"");
-      return;
+      logger.info("No arguments provided. Using defaults:");
+      logger.info("  File: data/sample.txt");
+      logger.info("  Query: lucene");
+      filePathStr = "data/sample.txt";
+      queryText = "lucene";
+    } else {
+      filePathStr = args[0];
+      queryText = args[1];
     }
 
-    Path filePath = Paths.get(args[0]);
-    String queryText = args[1];
+    Path filePath = Paths.get(filePathStr);
 
     if (!Files.isRegularFile(filePath)) {
-      System.err.println("File not found: " + filePath);
+      logger.log(Level.SEVERE, "File not found: {0}", filePath);
       return;
     }
 
@@ -61,11 +71,11 @@ public class App {
          Directory directory = FSDirectory.open(indexPath)) {
       boolean indexed = false;
       if (needsIndexing(directory, filePath)) {
-        System.out.println("Indexing file: " + filePath);
+        logger.log(Level.INFO, "Indexing file: {0}", filePath);
         indexFile(directory, analyzer, filePath);
         indexed = true;
       } else {
-        System.out.println("Index is up to date for file; using existing index at: " + indexPath);
+        logger.log(Level.INFO, "Index is up to date for file; using existing index at: {0}", indexPath);
       }
       if (indexed) {
         printIndexDiagnostics(directory, indexPath);
@@ -126,32 +136,32 @@ public class App {
   }
 
   private static void printIndexDiagnostics(Directory directory, Path indexPath) throws IOException {
-    System.out.println("Index directory: " + indexPath);
+    logger.log(Level.INFO, "Index directory: {0}", indexPath);
     String[] files = directory.listAll();
-    System.out.println("Index files (" + files.length + "):");
+    logger.log(Level.INFO, "Index files ({0}):", files.length);
     for (String file : files) {
-      System.out.println("  " + file + " (" + directory.fileLength(file) + " bytes)");
+      logger.log(Level.INFO, "  {0} ({1} bytes)", new Object[]{file, directory.fileLength(file)});
     }
   }
 
   private static void search(Directory directory, Analyzer analyzer, String queryText) throws Exception {
     // Show how the query text becomes tokens that Lucene actually searches for.
-    System.out.println("Analyzer tokens for query:");
+    logger.info("Analyzer tokens for query:");
     for (String token : analyzeText(analyzer, "content", queryText)) {
-      System.out.println("  " + token);
+      logger.info("  " + token);
     }
 
     // QueryParser applies the same analyzer to build the final query.
     // The parsed query makes visible the actual terms and operators Lucene will use.
     Query query = buildQuery(analyzer, "content", queryText);
-    System.out.println("Parsed query: " + query);
+    logger.log(Level.INFO, "Parsed query: {0}", query);
 
     try (DirectoryReader reader = DirectoryReader.open(directory)) {
       // IndexSearcher executes the query and scores with BM25 by default.
       IndexSearcher searcher = new IndexSearcher(reader);
       TopDocs topDocs = searcher.search(query, 10);
 
-      System.out.println("Total hits: " + topDocs.totalHits.value);
+      logger.log(Level.INFO, "Total hits: {0}", topDocs.totalHits.value);
       for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
         Document doc = searcher.doc(scoreDoc.doc);
         System.out.println("Hit: " + doc.get("path") + " (score=" + scoreDoc.score + ")");
